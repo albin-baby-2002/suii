@@ -60,14 +60,14 @@ function AlertRow({
             variant="outline"
             className={cn(
               diffPercent >= 0
-                ? 'border-green-600/30 text-green-700 dark:text-green-400'
-                : 'border-red-600/30 text-red-700 dark:text-red-400',
+                ? 'border-red-600/30 text-red-700 dark:text-red-400'
+                : 'border-green-600/30 text-green-700 dark:text-green-400',
               withinBand &&
-                (diffPercent >= 0 ? 'bg-green-500/15' : 'bg-red-500/15'),
+                (diffPercent >= 0 ? 'bg-red-500/15' : 'bg-green-500/15'),
             )}
           >
-            {diffPercent >= 0 ? '+' : ''}
-            {diffPercent.toFixed(1)}%
+            {diffPercent >= 0 ? '-' : '+'}
+            {Math.abs(diffPercent).toFixed(1)}%
           </Badge>
         )}
         {alert.lastAlertedDate && (

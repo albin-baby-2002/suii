@@ -75,7 +75,7 @@ export function AddAlertCard({ initialStocks }: { initialStocks: StockOption[] }
         </CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-3 sm:flex-row sm:items-end">
-        <div className="flex flex-1 flex-col gap-1.5">
+        <div className="flex flex-1 flex-col gap-3">
           <Label>Stock</Label>
           <StockCombobox
             stocks={stocks}
@@ -84,8 +84,8 @@ export function AddAlertCard({ initialStocks }: { initialStocks: StockOption[] }
             onSelectSearchResult={handleSelectSearchResult}
           />
         </div>
-        <div className="flex flex-col gap-1.5">
-          <Label htmlFor="target-price">Target price ({currencySymbol})</Label>
+        <div className="flex flex-col gap-3">
+          <Label htmlFor="target-price">Target price </Label>
           <Input
             id="target-price"
             type="number"
