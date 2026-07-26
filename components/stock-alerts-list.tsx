@@ -113,8 +113,8 @@ export function StockAlertsList({ items }: { items: StockWithAlerts[] }) {
 
   if (items.length === 0) {
     return (
-      <Card>
-        <CardContent className="py-10 text-center text-sm text-muted-foreground">
+      <Card className="mt-4">
+        <CardContent className="py-10 text-center text-sm  text-muted-foreground">
           No alerts yet. Add one above to get started.
         </CardContent>
       </Card>
