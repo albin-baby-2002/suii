@@ -41,7 +41,7 @@ export default async function Home() {
     <div className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-4 py-10">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold">Stock Price Alerts</h1>
+          <h1 className="text-2xl font-semibold">Stock Alerts</h1>
           {/* <p className="text-sm text-muted-foreground">
             NSE prices via Yahoo Finance — a Discord ping fires at most once a day.
           </p> */}
