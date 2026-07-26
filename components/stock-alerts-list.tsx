@@ -128,7 +128,7 @@ export function StockAlertsList({ items }: { items: StockWithAlerts[] }) {
           <Search />
         </InputGroupAddon>
         <InputGroupInput
-          placeholder="Search current alerts by name, ticker, or sector..."
+          placeholder="Search..."
           value={query}
           onChange={(e) => setQuery(e.target.value)}
         />
@@ -150,9 +150,6 @@ export function StockAlertsList({ items }: { items: StockWithAlerts[] }) {
               <CardTitle className="flex justify-between items-center gap-2">
                 <div className="flex">
                   <span className="min-w-0 truncate text-ellipsis overflow-hidden max-w-50">{stock.name} </span>
-                  <span className="text-muted-foreground">
-                    ({getTickerLabel(stock)})
-                  </span>
                 </div>
                 <span className="shrink-0 text-base font-normal">
                   {currentPrice !== null
