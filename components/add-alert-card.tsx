@@ -3,25 +3,46 @@
 import { useState, useTransition } from 'react';
 import { toast } from 'sonner';
 
-import { addAlert } from '@/lib/actions';
+import { addAlert, addStock } from '@/lib/actions';
 import { StockCombobox, type StockOption } from '@/components/stock-combobox';
-import { AddStockDialog } from '@/components/add-stock-dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import type { Stock } from '@/lib/db/schema';
+import { getTickerLabel } from '@/lib/stocks';
+import type { StockSearchResult } from '@/lib/yahoo';
 
 export function AddAlertCard({ initialStocks }: { initialStocks: StockOption[] }) {
   const [stocks, setStocks] = useState(initialStocks);
   const [stockId, setStockId] = useState<number | null>(null);
   const [targetPrice, setTargetPrice] = useState('');
-  const [dialogOpen, setDialogOpen] = useState(false);
+  const [isAddingStock, startAddStockTransition] = useTransition();
   const [isPending, startTransition] = useTransition();
 
-  function handleStockCreated(stock: Stock) {
-    setStocks((prev) => [...prev, { id: stock.id, name: stock.name, nseSymbol: stock.nseSymbol }]);
-    setStockId(stock.id);
+  const selectedStock = stocks.find((s) => s.id === stockId);
+  const currencySymbol = selectedStock?.market === 'US' ? '$' : '₹';
+
+  function handleSelectSearchResult(result: StockSearchResult) {
+    startAddStockTransition(async () => {
+      try {
+        const stock = await addStock({
+          name: result.name,
+          market: result.market,
+          symbol: result.symbol,
+          sector: result.exchangeDisplay,
+          marketCap: 'Mid',
+        });
+        if (!stock) throw new Error('Could not add stock');
+        setStocks((prev) => [
+          ...prev,
+          { id: stock.id, name: stock.name, ticker: getTickerLabel(stock), market: stock.market },
+        ]);
+        setStockId(stock.id);
+        toast.success(`${stock.name} added`);
+      } catch (err) {
+        toast.error(err instanceof Error ? err.message : 'Failed to add stock');
+      }
+    });
   }
 
   function handleSubmit() {
@@ -60,11 +81,11 @@ export function AddAlertCard({ initialStocks }: { initialStocks: StockOption[] }
             stocks={stocks}
             value={stockId}
             onChange={setStockId}
-            onAddNew={() => setDialogOpen(true)}
+            onSelectSearchResult={handleSelectSearchResult}
           />
         </div>
         <div className="flex flex-col gap-1.5">
-          <Label htmlFor="target-price">Target price (₹)</Label>
+          <Label htmlFor="target-price">Target price ({currencySymbol})</Label>
           <Input
             id="target-price"
             type="number"
@@ -73,14 +94,13 @@ export function AddAlertCard({ initialStocks }: { initialStocks: StockOption[] }
             value={targetPrice}
             onChange={(e) => setTargetPrice(e.target.value)}
             className="sm:w-36"
-            placeholder="e.g. 1450"
+            placeholder="1450"
           />
         </div>
-        <Button onClick={handleSubmit} disabled={isPending}>
+        <Button onClick={handleSubmit} disabled={isPending || isAddingStock}>
           {isPending ? 'Adding...' : 'Add alert'}
         </Button>
       </CardContent>
-      <AddStockDialog open={dialogOpen} onOpenChange={setDialogOpen} onCreated={handleStockCreated} />
     </Card>
   );
 }

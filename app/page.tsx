@@ -3,6 +3,7 @@ import { eq, asc } from 'drizzle-orm';
 import { db } from '@/lib/db/client';
 import { alerts, stocks, type Alert, type Stock } from '@/lib/db/schema';
 import { fetchStockPrice } from '@/lib/yahoo';
+import { getYahooQuoteSymbol, getTickerLabel } from '@/lib/stocks';
 import { AddAlertCard } from '@/components/add-alert-card';
 import { StockAlertsList, type StockWithAlerts } from '@/components/stock-alerts-list';
 import { CheckNowButton } from '@/components/check-now-button';
@@ -25,11 +26,14 @@ export default async function Home() {
   }
 
   const stocksWithAlerts: StockWithAlerts[] = await Promise.all(
-    Array.from(grouped.values()).map(async ({ stock, alerts: stockAlerts }) => ({
-      stock,
-      alerts: stockAlerts,
-      currentPrice: await fetchStockPrice(stock.nseSymbol),
-    }))
+    Array.from(grouped.values()).map(async ({ stock, alerts: stockAlerts }) => {
+      const symbol = getYahooQuoteSymbol(stock);
+      return {
+        stock,
+        alerts: stockAlerts,
+        currentPrice: symbol ? await fetchStockPrice(symbol) : null,
+      };
+    })
   );
   stocksWithAlerts.sort((a, b) => a.stock.name.localeCompare(b.stock.name));
 
@@ -46,7 +50,12 @@ export default async function Home() {
       </div>
 
       <AddAlertCard
-        initialStocks={allStocks.map((s) => ({ id: s.id, name: s.name, nseSymbol: s.nseSymbol }))}
+        initialStocks={allStocks.map((s) => ({
+          id: s.id,
+          name: s.name,
+          ticker: getTickerLabel(s),
+          market: s.market,
+        }))}
       />
 
       <StockAlertsList items={stocksWithAlerts} />

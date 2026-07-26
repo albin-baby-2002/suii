@@ -9,6 +9,7 @@ export async function ensureSeeded() {
       .insert(stocks)
       .values({
         name: stock.name,
+        market: 'NSE',
         nseSymbol: stock.nseSymbol,
         bseCode: stock.bseCode,
         sector: stock.sector,

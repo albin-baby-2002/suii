@@ -3,6 +3,7 @@ import { alerts, stocks } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
 import { fetchStockPrice } from '@/lib/yahoo';
 import { sendDiscordAlert } from '@/lib/discord';
+import { getYahooQuoteSymbol } from '@/lib/stocks';
 
 /** Proximity band: an alert fires when price is within this % of its target, either side. */
 const TOLERANCE_PERCENT = 1.5;
@@ -36,7 +37,10 @@ export async function checkAlerts() {
   for (const { stock, pending } of byStock.values()) {
     if (pending.length === 0) continue;
 
-    const price = await fetchStockPrice(stock.nseSymbol);
+    const symbol = getYahooQuoteSymbol(stock);
+    if (!symbol) continue;
+
+    const price = await fetchStockPrice(symbol);
     if (price === null) continue;
 
     for (const alert of pending) {

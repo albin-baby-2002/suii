@@ -10,8 +10,16 @@ export const stocks = sqliteTable(
     market: text('market', { enum: ['NSE', 'US'] })
       .notNull()
       .default('NSE'),
-    /** Bare NSE ticker (no ".NS" suffix), e.g. "ICICIBANK". Null for US-only stocks. */
-    nseSymbol: text('nse_symbol'),
+    /**
+     * Bare NSE ticker (no ".NS" suffix), e.g. "ICICIBANK". For US-only stocks
+     * this holds a unique placeholder ("__US__" + usSymbol) rather than being
+     * left blank or null — kept NOT NULL/unchanged from the original schema
+     * so adding US-market support only ever *adds* columns/indexes and never
+     * rewrites this one, which is the safest possible migration for an
+     * already-seeded production database. Never display this directly for a
+     * US stock — use getTickerLabel()/getYahooQuoteSymbol() from lib/stocks.ts.
+     */
+    nseSymbol: text('nse_symbol').notNull(),
     /** US ticker as quoted on Yahoo Finance, e.g. "AAPL". Null for NSE stocks. */
     usSymbol: text('us_symbol'),
     bseCode: text('bse_code').notNull().default(''),
@@ -24,9 +32,9 @@ export const stocks = sqliteTable(
       .default(sql`(current_timestamp)`),
   },
   (table) => [
-    // SQLite treats every NULL as distinct for uniqueness, so NSE-only rows
-    // (usSymbol = null) and US-only rows (nseSymbol = null) never collide.
     uniqueIndex('stocks_nse_symbol_unique').on(table.nseSymbol),
+    // usSymbol is nullable and SQLite treats every NULL as distinct, so
+    // multiple NSE-only rows (usSymbol = null) never collide with each other.
     uniqueIndex('stocks_us_symbol_unique').on(table.usSymbol),
   ]
 );
