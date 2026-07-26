@@ -7,6 +7,7 @@ import { getYahooQuoteSymbol, getTickerLabel } from '@/lib/stocks';
 import { AddAlertCard } from '@/components/add-alert-card';
 import { StockAlertsList, type StockWithAlerts } from '@/components/stock-alerts-list';
 import { CheckNowButton } from '@/components/check-now-button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export const dynamic = 'force-dynamic';
 
@@ -38,27 +39,31 @@ export default async function Home() {
   stocksWithAlerts.sort((a, b) => a.stock.name.localeCompare(b.stock.name));
 
   return (
-    <div className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-4 py-10">
+    <div className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-4 py-8">
       <div className="flex items-start justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold">Stock Alerts</h1>
-          {/* <p className="text-sm text-muted-foreground">
-            NSE prices via Yahoo Finance — a Discord ping fires at most once a day.
-          </p> */}
-        </div>
+        <h1 className="pl-2 text-2xl font-semibold">Stock Alerts</h1>
         <CheckNowButton />
       </div>
 
-      <AddAlertCard
-        initialStocks={allStocks.map((s) => ({
-          id: s.id,
-          name: s.name,
-          ticker: getTickerLabel(s),
-          market: s.market,
-        }))}
-      />
-
-      <StockAlertsList items={stocksWithAlerts} />
+      <Tabs defaultValue="alerts">
+        <TabsList className="w-full">
+          <TabsTrigger value="alerts">Current Alerts</TabsTrigger>
+          <TabsTrigger value="add">Add Alert</TabsTrigger>
+        </TabsList>
+        <TabsContent value="add">
+          <AddAlertCard
+            initialStocks={allStocks.map((s) => ({
+              id: s.id,
+              name: s.name,
+              ticker: getTickerLabel(s),
+              market: s.market,
+            }))}
+          />
+        </TabsContent>
+        <TabsContent value="alerts">
+          <StockAlertsList items={stocksWithAlerts} />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

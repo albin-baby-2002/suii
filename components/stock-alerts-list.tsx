@@ -123,16 +123,18 @@ export function StockAlertsList({ items }: { items: StockWithAlerts[] }) {
 
   return (
     <div className="flex flex-col gap-3">
-      <InputGroup>
-        <InputGroupAddon>
-          <Search />
-        </InputGroupAddon>
-        <InputGroupInput
-          placeholder="Search..."
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-        />
-      </InputGroup>
+      <div className="sticky top-0 z-10 -mx-4 bg-background px-4 pt-4 pb-2">
+        <InputGroup>
+          <InputGroupAddon>
+            <Search />
+          </InputGroupAddon>
+          <InputGroupInput
+            placeholder="Search..."
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+          />
+        </InputGroup>
+      </div>
 
       {filtered.length === 0 && (
         <Card>

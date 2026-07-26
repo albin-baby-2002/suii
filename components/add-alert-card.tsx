@@ -67,8 +67,8 @@ export function AddAlertCard({ initialStocks }: { initialStocks: StockOption[] }
   }
 
   return (
-    <Card>
-      <CardHeader>
+    <Card className='mt-4'>
+      <CardHeader className=''>
         <CardTitle>Add a price alert</CardTitle>
         <CardDescription>
           Get a Discord ping (once a day, max) when a stock trades within 1.5% of the target.
