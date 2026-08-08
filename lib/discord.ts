@@ -83,6 +83,11 @@ export async function sendPeAlert(params: { stock: Stock; analysis: PeAnalysis }
               value: `${analysis.fiveYearMedianPE.toFixed(1)} (${analysis.percentFromMedian >= 0 ? '+' : ''}${analysis.percentFromMedian.toFixed(1)}%)`,
               inline: true,
             },
+            {
+              name: '3yr Median P/E',
+              value: `${analysis.threeYearMedianPE.toFixed(1)} (${analysis.percentFromThreeYearMedian >= 0 ? '+' : ''}${analysis.percentFromThreeYearMedian.toFixed(1)}%)`,
+              inline: true,
+            },
           ],
           footer: { text: stock.sector },
           timestamp: new Date().toISOString(),

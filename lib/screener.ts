@@ -8,6 +8,8 @@ export const SCREENER_DELAY_MS = 3000;
 const LONG_WINDOW_DAYS = 3652;
 /** 5 years — matches what was asked for the median/"close to median" comparison. */
 const MEDIAN_WINDOW_DAYS = 1825;
+/** 3 years — shown alongside the 5yr median since a shorter window is more representative for recently re-rated/listed businesses. */
+const SHORT_MEDIAN_WINDOW_DAYS = 1095;
 const MS_PER_DAY = 86_400_000;
 
 export function sleep(ms: number): Promise<void> {
@@ -24,10 +26,14 @@ export interface PeAnalysis {
   allTimeHighDate: string;
   fiveYearMedianPE: number;
   fiveYearHighPE: number;
+  threeYearMedianPE: number;
+  threeYearHighPE: number;
   /** <= 0. How far the current P/E sits below the (proxy) all-time high, in percent. */
   percentFromAllTimeHigh: number;
   /** Can be positive or negative. How far the current P/E sits from the 5yr median, in percent. */
   percentFromMedian: number;
+  /** Can be positive or negative. How far the current P/E sits from the 3yr median, in percent. */
+  percentFromThreeYearMedian: number;
   signal: PeSignal;
 }
 
@@ -91,6 +97,13 @@ function median(nums: number[]): number {
   return sorted.length % 2 !== 0 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
 }
 
+function windowStats(values: Array<[string, number]>, lastDateMs: number, windowDays: number) {
+  const inWindow = values
+    .filter(([date]) => lastDateMs - new Date(date).getTime() <= windowDays * MS_PER_DAY)
+    .map(([, pe]) => pe);
+  return { medianPE: median(inWindow), highPE: Math.max(...inWindow) };
+}
+
 function classify(percentFromAllTimeHigh: number, percentFromMedian: number): PeSignal {
   if (percentFromAllTimeHigh >= -0.5) return 'AT_HIGH';
   if (percentFromAllTimeHigh >= -15) return 'NEAR_HIGH';
@@ -125,14 +138,16 @@ export async function analyzeStockPe(symbol: string): Promise<PeAnalysis | 'NOT_
     }
   }
 
-  const fiveYearValues = values.filter(
-    ([date]) => lastDateMs - new Date(date).getTime() <= MEDIAN_WINDOW_DAYS * MS_PER_DAY
+  const { medianPE: fiveYearMedianPE, highPE: fiveYearHighPE } = windowStats(values, lastDateMs, MEDIAN_WINDOW_DAYS);
+  const { medianPE: threeYearMedianPE, highPE: threeYearHighPE } = windowStats(
+    values,
+    lastDateMs,
+    SHORT_MEDIAN_WINDOW_DAYS
   );
-  const fiveYearMedianPE = median(fiveYearValues.map(([, pe]) => pe));
-  const fiveYearHighPE = Math.max(...fiveYearValues.map(([, pe]) => pe));
 
   const percentFromAllTimeHigh = ((currentPE - allTimeHighPE) / allTimeHighPE) * 100;
   const percentFromMedian = ((currentPE - fiveYearMedianPE) / fiveYearMedianPE) * 100;
+  const percentFromThreeYearMedian = ((currentPE - threeYearMedianPE) / threeYearMedianPE) * 100;
 
   return {
     symbol,
@@ -142,8 +157,11 @@ export async function analyzeStockPe(symbol: string): Promise<PeAnalysis | 'NOT_
     allTimeHighDate,
     fiveYearMedianPE,
     fiveYearHighPE,
+    threeYearMedianPE,
+    threeYearHighPE,
     percentFromAllTimeHigh,
     percentFromMedian,
+    percentFromThreeYearMedian,
     signal: classify(percentFromAllTimeHigh, percentFromMedian),
   };
 }

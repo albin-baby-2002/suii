@@ -11,10 +11,15 @@ function todayWeekdayIST(): string {
   return new Intl.DateTimeFormat('en-US', { timeZone: 'Asia/Kolkata', weekday: 'long' }).format(new Date());
 }
 
+const signedPct = (pct: number) => `${pct >= 0 ? '+' : ''}${pct.toFixed(1)}%`;
+
+/** P/E moves slowly enough that a couple of checks a week is plenty — no need to hit screener.in daily. */
+const RUN_DAYS = new Set(['Sunday', 'Wednesday']);
+
 async function main() {
   const today = todayWeekdayIST();
-  if (today !== 'Sunday') {
-    console.log(`Today is ${today} (IST) — P/E check only runs on Sundays, skipping.`);
+  if (!RUN_DAYS.has(today)) {
+    console.log(`Today is ${today} (IST) — P/E check only runs on ${[...RUN_DAYS].join(' and ')}, skipping.`);
     return;
   }
 
@@ -46,7 +51,7 @@ async function main() {
         console.log('not found on screener.in, skipping');
       } else {
         console.log(
-          `PE ${analysis.currentPE} (~10yr high ${analysis.allTimeHighPE.toFixed(1)}, 5yr median ${analysis.fiveYearMedianPE.toFixed(1)}) -> ${analysis.signal}`
+          `PE ${analysis.currentPE} (~10yr high ${analysis.allTimeHighPE.toFixed(1)}, 5yr median ${analysis.fiveYearMedianPE.toFixed(1)}, 3yr median ${analysis.threeYearMedianPE.toFixed(1)}) -> ${analysis.signal}`
         );
         if (analysis.signal !== 'NORMAL') {
           flagged.push({ stock, analysis });
@@ -67,7 +72,7 @@ async function main() {
   }
   for (const { stock, analysis } of flagged) {
     console.log(
-      `${stock.nseSymbol}: ${analysis.signal} — PE ${analysis.currentPE} vs ~10yr high ${analysis.allTimeHighPE.toFixed(1)} (${analysis.percentFromAllTimeHigh.toFixed(1)}%) / 5yr median ${analysis.fiveYearMedianPE.toFixed(1)} (${analysis.percentFromMedian >= 0 ? '+' : ''}${analysis.percentFromMedian.toFixed(1)}%)`
+      `${stock.nseSymbol}: ${analysis.signal} — PE ${analysis.currentPE} vs ~10yr high ${analysis.allTimeHighPE.toFixed(1)} (${signedPct(analysis.percentFromAllTimeHigh)}) / 5yr median ${analysis.fiveYearMedianPE.toFixed(1)} (${signedPct(analysis.percentFromMedian)}) / 3yr median ${analysis.threeYearMedianPE.toFixed(1)} (${signedPct(analysis.percentFromThreeYearMedian)})`
     );
   }
 }
